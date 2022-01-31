@@ -66,7 +66,8 @@ class Trainer(object):
         if self.pretrained_model:
             self.load_pretrained_model()
 
-
+        self.ps = config.ps
+        self.count = 0
 
     def train(self):
 
@@ -98,6 +99,7 @@ class Trainer(object):
                 data_iter = iter(self.data_loader)
                 real_images, _ = next(data_iter)
 
+
             # Compute loss with real images
             # dr1, dr2, df1, df2, gf1, gf2 are attention scores
             real_images = tensor2var(real_images)
@@ -110,6 +112,49 @@ class Trainer(object):
             # apply Gumbel Softmax
             z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
             fake_images,gf1,gf2 = self.G(z)
+
+            # additional part
+            if self.ps:
+                import os
+                import numpy as np
+                bs = fake_images.shape[0]
+                assert bs == 64, 'Manual config for batch size 64'
+                base_path = '/mnt/d/giang/pre_syn_for_attStyle/'
+                with torch.no_grad():
+                    target = 500
+                    mini_bs = 50
+                    recent = 0
+                    save_to = os.path.join(base_path, str(self.count))
+                    os.makedirs(save_to, exist_ok=True)
+                    while recent<target:
+                        z = tensor2var(torch.randn(mini_bs, self.z_dim))
+                        img_to_dump, _, _ = self.G(z) # temp for gen_c: label -> do not know exaclty the form
+                        for idx in range(mini_bs):
+                            name = os.path.join(save_to, f'{recent+idx}.pt')
+                            torch.save(img_to_dump[idx], name)
+                        recent += mini_bs
+                    self.count+=1
+
+            syn_percent = 0.6       
+            storage = 5
+            gap = 25
+            check_path = base_path, str(self.count-storage*gap)
+            if os.path.exists(check_path):
+                selected = np.random.choice(range(bs), int(bs*(1-syn_percent)+0.5))
+                fake_images = fake_images[selected]
+
+                decay =  [1, 3, 5, 7, 9, 12]
+                pre_image = list()
+                for i in range(1, len(decay)+1):
+                    syn_selected = np.random.choice(range(target), decay[i])
+                    for the_chosen in syn_selected:
+                        name = os.path.join(base_path, str(self.count-i*gap), str(the_chosen), '.pt')
+                        assert os.path.exists(name), f'{name} is not correct' 
+                        pre_image.append(torch.load(name))
+                pre_image = torch.stack(pre_image)
+                fake_images = torch.cat((fake_images, pre_image), dim=0)
+            ##### end #####
+
             d_out_fake,df1,df2 = self.D(fake_images)
 
             if self.adv_loss == 'wgan-gp':

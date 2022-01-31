@@ -50,5 +50,7 @@ def get_parameters():
     parser.add_argument('--sample_step', type=int, default=100)
     parser.add_argument('--model_save_step', type=float, default=1.0)
 
+    # apply new method
+    parser.add_argument('--ps', action='store_true')
 
     return parser.parse_args()

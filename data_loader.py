@@ -17,7 +17,7 @@ class Cifar(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         image = cv2.imread(self.X[idx]).astype(np.float32)
         image = (image/127.5) - 1
-        return torch.tensor(image).float()
+        return torch.tensor(image).float(), None
 
 
 class Data_Loader():

@@ -6,7 +6,7 @@ from glob import glob
 import os
 import cv2
 import numpy as np
-class Cifar(torch.utils.Dataset):
+class Cifar(torch.utils.data.Dataset):
     def __init__(self, image_path):
         super().__init__()
         self.X = glob(os.path.join(image_path, '*.png'))

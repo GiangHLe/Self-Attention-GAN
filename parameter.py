@@ -39,7 +39,7 @@ def get_parameters():
     parser.add_argument('--use_tensorboard', type=str2bool, default=False)
 
     # Path
-    parser.add_argument('--image_path', type=str, default='./data')
+    parser.add_argument('--image_path', type=str, default="/home/vcl/giang/cifar-10/")
     parser.add_argument('--log_path', type=str, default='./logs')
     parser.add_argument('--model_save_path', type=str, default='./models')
     parser.add_argument('--sample_path', type=str, default='./samples')

@@ -119,7 +119,7 @@ class Trainer(object):
                 import numpy as np
                 bs = fake_images.shape[0]
                 assert bs == 64, 'Manual config for batch size 64'
-                base_path = '/mnt/d/giang/pre_syn_for_attStyle/'
+                base_path = "/home/vcl/giang/pre_syn/cifar10/"
                 with torch.no_grad():
                     target = 500
                     mini_bs = 50

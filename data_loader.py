@@ -2,6 +2,23 @@ import torch
 import torchvision.datasets as dsets
 from torchvision import transforms
 
+from glob import glob
+import os
+import cv2
+import numpy as np
+class Cifar(dsets.Dataset):
+    def __init__(self, image_path):
+        super().__init__()
+        self.X = glob(os.path.join(image_path, '*.png'))
+        
+    def __len__(self):
+        return len(self.X)
+    
+    def __getitem__(self, idx):
+        image = cv2.imread(self.X[idx]).astype(np.float32)
+        image = (image/127.5) - 1
+        return torch.tensor(image).float()
+
 
 class Data_Loader():
     def __init__(self, train, dataset, image_path, image_size, batch_size, shuf=True):
@@ -41,6 +58,9 @@ class Data_Loader():
             dataset = self.load_lsun()
         elif self.dataset == 'celeb':
             dataset = self.load_celeb()
+
+        elif self.dataset == 'cifar':
+            dataset= Cifar(self.path)
 
         loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=self.batch,
